@@ -8,13 +8,13 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <filesystem>
+#include "Data.hpp"
 
 Package::Package(
     std::string packageFilesPath,
     Version version,
     std::string name,
     std::vector<std::string> require,
-    std::vector<std::string> optional,
     std::vector<std::string> conflicts,
     std::vector<std::string> files,
     std::vector<std::string> directories) {
@@ -22,7 +22,6 @@ Package::Package(
     _version          = version;
     _name             = name;
     _require          = require;
-    _optional         = optional;
     _conflicts        = conflicts;
     _files            = files;
     _directories      = directories;
@@ -33,7 +32,15 @@ Package::~Package() {
 }
 
 std::vector<std::string> Package::checkFileConflicts() {
-    return {};
+    std::vector<std::string> result;
+
+    for (auto& file : _files) {
+        if (std::filesystem::exists(file)) {
+            result.push_back(file);
+        }
+    }
+
+    return result;
 }
 
 bool Package::install() {
@@ -86,18 +93,6 @@ void Package::remove() {
     }
 }
 
-std::vector<std::string> Package::getRequires() {
-    return _require;
-}
-
-std::vector<std::string> Package::getOptional() {
-    return _optional;
-}
-
-std::vector<std::string> Package::getConflicts() {
-    return _conflicts;
-}
-
 std::string Package::getName() {
     return _name;
 }
@@ -110,10 +105,58 @@ std::vector<std::string> Package::getFiles() {
     return _files;
 }
 
-std::vector<std::string> Package::getDirectories() {
-    return _directories;
+
+std::vector<std::string> Package::notInstalledRequires(Data *data) {
+    std::vector<std::string> result = this->_require;
+
+    for (auto pkg : data->getPackages()) {
+        auto pos = std::find(result.begin(), result.end(), pkg->getName());
+
+        if (pos != result.end()) {
+            result.erase(pos);
+        }
+    }
+
+    return result;
 }
 
+std::vector<std::string> Package::installedConflicts(Data *data) {
+    std::vector<std::string> result;
+
+    for (auto pkg : data->getPackages()) {
+        auto pos = std::find(_conflicts.begin(), _conflicts.end(), pkg->getName());
+
+        if (pos != _conflicts.end()) {
+            result.push_back(pkg->getName());
+        }
+    }
+
+    return result;
+}
+
+void Package::showInfo() {
+    std::cout
+            << "-Package info-"                           << std::endl
+            << " Name    : " << this->_name               << std::endl
+            << " Version : " << this->_version.toString() << std::endl
+            << " -Requires-"                              << std::endl;
+
+    for (std::string reqPack : this->_require) {
+        std::cout << "  " << reqPack << std::endl;
+    }
+
+    std::cout << " -Conflicts-" << std::endl;
+
+    for (std::string confPack : this->_conflicts) {
+        std::cout << "  " << confPack << std::endl;
+    }
+
+    std::cout << " -Files-" << std::endl;
+
+    for (std::string file : this->_files) {
+        std::cout << "  " << file << std::endl;
+    }
+}
 
 Package *Package::fromFile(std::string filePath) {
 
@@ -132,7 +175,7 @@ Package *Package::fromFile(std::string filePath) {
     std::string packageFilesPath = "/tmp/spmt/pkgs/" + fileName;
 
     std::filesystem::create_directories(packageFilesPath);
-    std::system(("bsdtar -x -C " + packageFilesPath + " -f " + filePath).c_str());
+    std::system(("tar --zstd -xf " + filePath + " -C " + packageFilesPath).c_str());
 
     using namespace nlohmann;
 
@@ -149,7 +192,6 @@ Package *Package::fromFile(std::string filePath) {
     };
 
     std::vector<std::string> require = infoJson["require"];
-    std::vector<std::string> optional = infoJson["optional"];
     std::vector<std::string> conflicts = infoJson["conflicts"];
 
     std::vector<std::string> directories;
@@ -161,5 +203,5 @@ Package *Package::fromFile(std::string filePath) {
         if (p.is_regular_file()) files.push_back(p.path().string().substr(packageRootPath.size()));
         else if (p.is_directory()) directories.push_back(p.path().string().substr(packageRootPath.size()));
 
-    return new Package(packageFilesPath, version, name, require, optional, conflicts, files, directories);
+    return new Package(packageFilesPath, version, name, require, conflicts, files, directories);
 }

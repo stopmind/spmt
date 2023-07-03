@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <nlohmann/json.hpp>
 #include <fstream>
+#include <iostream>
 
 Data::Data() {
     if (!std::filesystem::is_directory("/var/spmt")) {
@@ -32,7 +33,7 @@ Data::Data() {
             .patch = pkgInfoJson["version"][2]
         };
 
-        _packages.push_back(new Package("", ver, pkgInfoJson["name"], pkgInfoJson["require"], {}, {}, pkgInfoJson["files"], {}));
+        _packages.push_back(new Package("", ver, pkgInfoJson["name"], {}, {}, pkgInfoJson["files"], {}));
     }
 }
 
@@ -54,9 +55,8 @@ void Data::addInstalledPackage(Package *package) {
 
     json pkgInfo;
 
-    pkgInfo["name"]    = package->getName();
-    pkgInfo["require"] = package->getRequires();
-    pkgInfo["files"]   = package->getFiles();
+    pkgInfo["name"]  = package->getName();
+    pkgInfo["files"] = package->getFiles();
 
     pkgInfo["version"][0] = package->getVersion().major;
     pkgInfo["version"][1] = package->getVersion().minor;
@@ -75,5 +75,16 @@ void Data::delInstalledPackage(std::string pkgName) {
             std::filesystem::remove("/var/spmt/pkgs/" + pkgName + ".json");
             return;
         }
+    }
+}
+
+void Data::showInfo() {
+    std::cout
+            << "-Info-"                                          << std::endl
+            << " Package count : " << this->_packages.size() << std::endl
+            << " -Packages-"                                     << std::endl;
+
+    for (auto *pkg : this->_packages) {
+        std::cout << "  " << pkg->getName() << std::endl;
     }
 }

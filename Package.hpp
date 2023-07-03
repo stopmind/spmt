@@ -10,13 +10,14 @@
 
 #include "Version.hpp"
 
+class Data;
+
 class Package {
 private:
     std::string _packageFilesPath;
     Version _version;
     std::string _name;
     std::vector<std::string> _require;
-    std::vector<std::string> _optional;
     std::vector<std::string> _conflicts;
     std::vector<std::string> _files;
     std::vector<std::string> _directories;
@@ -24,14 +25,14 @@ public:
     std::vector<std::string> checkFileConflicts();
     bool install();
     void remove();
+    void showInfo();
 
-    std::vector<std::string> getRequires();
-    std::vector<std::string> getOptional();
-    std::vector<std::string> getConflicts();
-    std::vector<std::string> getDirectories();
     std::vector<std::string> getFiles();
     std::string getName();
     Version getVersion();
+
+    std::vector<std::string> notInstalledRequires(Data *data);
+    std::vector<std::string> installedConflicts(Data *data);
 
     static Package *fromFile(std::string filePath);
 
@@ -40,7 +41,6 @@ public:
         Version version,
         std::string name,
         std::vector<std::string> require,
-        std::vector<std::string> optional,
         std::vector<std::string> conflicts,
         std::vector<std::string> files,
         std::vector<std::string> directories);

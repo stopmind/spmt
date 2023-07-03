@@ -17,6 +17,8 @@ public:
     void addInstalledPackage(Package* package);
     void delInstalledPackage(std::string pkgName);
 
+    void showInfo();
+
     Data();
     ~Data();
 };

@@ -1,7 +1,6 @@
 {
 	"name"     : "hello",
 	"require"  : [],
-	"optional" : [],
 	"conflicts": [],
 	"version"  : [1, 0, 1]
 }

@@ -13,6 +13,7 @@ struct Version {
     int patch;
 
     std::string toString();
+    bool operator==(Version a);
 };
 
 
