@@ -3,6 +3,7 @@
 //
 
 #include "Package.hpp"
+#include "Defines.hpp"
 
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -172,7 +173,7 @@ Package *Package::fromFile(std::string filePath) {
     if (lastDeli == filePath.npos) lastDeli = 0;
 
     std::string fileName = filePath.substr(lastDeli);
-    std::string packageFilesPath = "/tmp/spmt/pkgs/" + fileName;
+    std::string packageFilesPath = SPMT_TMP"/pkgs/" + fileName;
 
     std::filesystem::create_directories(packageFilesPath);
     std::system(("tar --zstd -xf " + filePath + " -C " + packageFilesPath).c_str());

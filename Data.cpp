@@ -3,6 +3,7 @@
 //
 
 #include "Data.hpp"
+#include "Defines.hpp"
 
 #include <filesystem>
 #include <unistd.h>
@@ -11,17 +12,17 @@
 #include <iostream>
 
 Data::Data() {
-    if (!std::filesystem::is_directory("/var/spmt")) {
+    if (!std::filesystem::exists(SPMT_DAT)) {
         if (getuid() != 0) return;
 
         using namespace std::filesystem;
 
-        create_directories("/var/spmt/pkgs");
+        create_directories(SPMT_DAT"/pkgs/");
 
         return;
     }
 
-    for (auto& pkgInfoFilePath : std::filesystem::recursive_directory_iterator("/var/spmt/pkgs")) {
+    for (auto& pkgInfoFilePath : std::filesystem::recursive_directory_iterator(SPMT_DAT"/pkgs/")) {
         if (!std::filesystem::is_regular_file(pkgInfoFilePath)) continue;
         using namespace nlohmann;
 
@@ -62,7 +63,7 @@ void Data::addInstalledPackage(Package *package) {
     pkgInfo["version"][1] = package->getVersion().minor;
     pkgInfo["version"][2] = package->getVersion().patch;
 
-    std::ofstream pkgInfoFile("/var/spmt/pkgs/" + package->getName() + ".json");
+    std::ofstream pkgInfoFile(SPMT_DAT"/pkgs/" + package->getName() + ".json");
     pkgInfoFile << pkgInfo.dump(4);
     pkgInfoFile.close();
 
@@ -72,7 +73,7 @@ void Data::delInstalledPackage(std::string pkgName) {
     for (auto *pkg : _packages) {
         if (pkg->getName() == pkgName) {
             std::remove(_packages.begin(), _packages.end(), pkg);
-            std::filesystem::remove("/var/spmt/pkgs/" + pkgName + ".json");
+            std::filesystem::remove(SPMT_DAT"/pkgs/" + pkgName + ".json");
             return;
         }
     }
@@ -80,9 +81,9 @@ void Data::delInstalledPackage(std::string pkgName) {
 
 void Data::showInfo() {
     std::cout
-            << "-Info-"                                          << std::endl
-            << " Package count : " << this->_packages.size() << std::endl
-            << " -Packages-"                                     << std::endl;
+        << "-Info-"                                      << std::endl
+        << " Package count : " << this->_packages.size() << std::endl
+        << " -Packages-"                                 << std::endl;
 
     for (auto *pkg : this->_packages) {
         std::cout << "  " << pkg->getName() << std::endl;

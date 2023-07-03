@@ -5,6 +5,7 @@
 #include "Package.hpp"
 #include "Args.hpp"
 #include "Data.hpp"
+#include "Defines.hpp"
 
 Package *loadPkgFromFile(std::string pkgFilePath) {
     Package *result = Package::fromFile(pkgFilePath);
@@ -192,6 +193,6 @@ int main(int argc, char **argv) {
     }
 
 
-    std::filesystem::remove_all("/tmp/spmt");
+    std::filesystem::remove_all(SPMT_TMP);
     return 0;
 }
