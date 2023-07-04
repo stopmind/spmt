@@ -3,7 +3,7 @@ project(spmt)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(spmt Package.hpp Package.cpp Version.hpp Version.cpp Args.hpp Args.cpp Data.hpp Data.cpp Defines.hpp main.cpp)
+add_executable(spmt Package.hpp Package.cpp Version.hpp Version.cpp Args.hpp Args.cpp Data.hpp Data.cpp Defines.hpp main.cpp Config.hpp Config.cpp)
 
 
 if(NOT DEFINED CONF_DIR)

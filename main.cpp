@@ -6,6 +6,7 @@
 #include "Args.hpp"
 #include "Data.hpp"
 #include "Defines.hpp"
+#include "Config.hpp"
 
 Package *loadPkgFromFile(std::string pkgFilePath) {
     Package *result = Package::fromFile(pkgFilePath);
@@ -64,9 +65,19 @@ void checkRoot() {
     }
 }
 
+void RunHooks(Config *config, std::string action) {
+    std::cout << "-Run hooks-" << std::endl;
+    for (auto &hook : config->GetHooksFiles()) {
+        auto name = hook.substr(hook.find_last_of("/") + 1);
+        std::cout << " -Run " << name << " hook-" << std::endl;
+        std::system((hook + " " + action).c_str());
+    }
+}
+
 int main(int argc, char **argv) {
     Args args(argc, argv);
     Data data;
+    Config config;
 
     switch (args.getAction()) {
         case Args::None:
@@ -130,6 +141,7 @@ int main(int argc, char **argv) {
                 data.addInstalledPackage(pkg);
                 std::cout << std::endl;
             }
+            RunHooks(&config, "SETUP");
             break;
         case Args::Remove:
             if (args.getPackages().size() == 0) {
@@ -148,6 +160,7 @@ int main(int argc, char **argv) {
                 data.delInstalledPackage(pkgName);
                 std::cout << std::endl;
             }
+            RunHooks(&config, "DEL");
             break;
         case Args::InfoPkgInstalled:
             if (args.getPackages().size() == 0) {
